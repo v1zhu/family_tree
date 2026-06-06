@@ -37,17 +37,16 @@ Opens a browser at `http://localhost:8080` with an interactive graph.
 ```bash
 # Add people
 family-tree add-person --name Alice --age 30 --gender female --bio "Lives in Chicago"
-family-tree add-person --name Bob --age 55 --gender male
-family-tree add-person --name Charlie --age 10
+family-tree add-person --name Bob --age 10 --gender male
+family-tree add-person --name Charlie --age 60
 
 # Link them
-family-tree add-relation 2 1 parent     # Bob is parent of Alice
-family-tree add-relation 1 3 parent     # Alice is parent of Charlie
-family-tree add-relation 1 4 sibling    # Alice and #4 are siblings
+family-tree add-relation 2 1 parent     # Alice is parent of Bob
+family-tree add-relation 1 3 parent     # Charlie is parent of Alice
 
 # Find how two people are related
 family-tree relation 3 2
-# Output: Charlie is the grandchild of Bob
+# Output: Bob is the grandchild of Charlie
 
 # List everyone
 family-tree list
@@ -57,12 +56,6 @@ family-tree info 1
 
 # Update a person
 family-tree update-person 1 --name "Alice Smith" --bio "Moved to Seattle"
-
-# Delete a relationship
-family-tree delete-relation 1 4 sibling
-
-# Delete a person
-family-tree delete-person 4
 ```
 
 ## How the Relationship Engine Works
