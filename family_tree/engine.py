@@ -291,8 +291,13 @@ class FamilyTree:
             label = {1: "parent", 2: "grandparent"}.get(dist, f"great-{'great-' * (dist - 3)}grandparent" if dist > 2 else "ancestor")
             return f"{n_linked} (spouse of {n_spouse}) is the step-{label} of {n_other}"
 
+        if other_pid in self.get_siblings(spouse_pid):
+            return f"{n_linked} (spouse of {n_spouse}) is the sibling-in-law of {n_other}"
+
         blood_rel = self._find_blood_relationship(spouse_pid, other_pid)
         if blood_rel:
+            if "cousin" in blood_rel:
+                return f"{n_linked} (spouse of {n_spouse}) is related by marriage ({blood_rel.split(' are ')[-1]}) to {n_other}"
             return f"{n_linked} (spouse of {n_spouse}) is related by marriage to {n_other}"
         return None
 
