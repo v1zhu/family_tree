@@ -1,6 +1,6 @@
 # Family Tree Tracker
 
-A Python CLI tool to **manage and visualize family relationships**. Track people, connect them as parents/children or siblings, and discover how any two people are related — even complex relationships like "second cousin once removed" or "great-grandparent".
+A Python CLI tool to manage and visualize family relationships. Track people, connect them as parents/children or siblings, and discover how any two people are related — even complex relationships familial relations. This tools aims to be a way to keep track of the history of your family.
 
 ## Features
 
@@ -73,36 +73,3 @@ family-tree serve
 ```
 
 Opens a browser at `http://localhost:8080` with an interactive graph.
-
-
-## How the Relationship Engine Works
-
-The tool stores **parent** and **sibling** relationships. The engine traces parent-child links upward to find common ancestors, then classifies the relationship:
-
-| Distance to common ancestor | Relationship |
-|---|---|
-| (0, 1) | parent / child |
-| (0, 2) | grandparent / grandchild |
-| (0, N) | great-...-grandparent / great-...-grandchild |
-| (1, 1) | siblings |
-| (1, 2) | aunt/uncle — niece/nephew |
-| (1, N) | great-...-aunt/uncle — great-...-niece/nephew |
-| (2, 2) | first cousins |
-| (2, 3) | first cousins once removed |
-| (3, 3) | second cousins |
-| (N, M) | (min(N,M)-1)th cousins, \|N-M\| times removed |
-
-## Project Structure
-
-```
-family_tree/
-├── __init__.py
-├── __main__.py        # python -m family_tree
-├── cli.py             # CLI entry point (argparse)
-├── engine.py          # FamilyTree data model + relationship engine
-├── server.py          # HTTP server for the web UI
-└── static/
-    ├── index.html     # Interactive graph viewer
-    ├── style.css
-    └── script.js
-```
