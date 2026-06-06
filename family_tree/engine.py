@@ -95,6 +95,13 @@ class FamilyTree:
             spouse_rel = {"type": "spouse", "target_id": pid}
             if spouse_rel not in self.people[target_id]["relationships"]:
                 self.people[target_id]["relationships"].append(spouse_rel)
+        elif rel_type == "sibling":
+            for parent_rel in self.people[pid]["relationships"]:
+                if parent_rel["type"] == "parent":
+                    self._add_parent(target_id, parent_rel["target_id"])
+            for parent_rel in self.people[target_id]["relationships"]:
+                if parent_rel["type"] == "parent":
+                    self._add_parent(pid, parent_rel["target_id"])
 
     def delete_relationship(self, pid, target_id, rel_type):
         if pid not in self.people:
@@ -116,6 +123,14 @@ class FamilyTree:
                 for r in self.people[target_id]["relationships"]
                 if not (r["type"] == "spouse" and r["target_id"] == pid)
             ]
+
+    def _add_parent(self, pid, parent_id):
+        parent_rel = {"type": "parent", "target_id": parent_id}
+        if parent_rel not in self.people[pid]["relationships"]:
+            self.people[pid]["relationships"].append(parent_rel)
+        child_rel = {"type": "child", "target_id": pid}
+        if child_rel not in self.people[parent_id]["relationships"]:
+            self.people[parent_id]["relationships"].append(child_rel)
 
     def _ancestors(self, pid, max_depth=100):
         result = {pid: 0}
