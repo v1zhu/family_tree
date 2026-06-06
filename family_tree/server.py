@@ -53,6 +53,7 @@ class FamilyTreeHandler(SimpleHTTPRequestHandler):
                 parents = self.tree.get_parents(pid)
                 children = self.tree.get_children(pid)
                 siblings = self.tree.get_siblings(pid)
+                spouses = self.tree.get_spouses(pid)
                 data.append({
                     "id": pid,
                     "name": p.get("name", ""),
@@ -62,6 +63,7 @@ class FamilyTreeHandler(SimpleHTTPRequestHandler):
                     "parents": parents,
                     "children": children,
                     "siblings": siblings,
+                    "spouses": spouses,
                 })
             self._send_json(data)
 
@@ -80,6 +82,7 @@ class FamilyTreeHandler(SimpleHTTPRequestHandler):
                 parents = self.tree.get_parents(pid)
                 children = self.tree.get_children(pid)
                 siblings = self.tree.get_siblings(pid)
+                spouses = self.tree.get_spouses(pid)
                 self._send_json({
                     "id": pid,
                     "name": p.get("name", ""),
@@ -90,6 +93,7 @@ class FamilyTreeHandler(SimpleHTTPRequestHandler):
                     "parents": parents,
                     "children": children,
                     "siblings": siblings,
+                    "spouses": spouses,
                 })
             else:
                 self._send_error("Invalid path")
@@ -118,6 +122,56 @@ class FamilyTreeHandler(SimpleHTTPRequestHandler):
             if not nodes:
                 nodes = [{"id": 0, "label": "No people yet", "title": ""}]
             self._send_json({"nodes": nodes, "edges": edges})
+
+        elif path.startswith("/api/ancestors/"):
+            parts = path.split("/")
+            if len(parts) == 4:
+                try:
+                    pid = int(parts[3])
+                except ValueError:
+                    self._send_error("Invalid ID")
+                    return
+                p = self.tree.get_person(pid)
+                if not p:
+                    self._send_error("Not found", 404)
+                    return
+                ancest = self.tree.get_ancestors(pid)
+                data = []
+                for dist, aid in ancest:
+                    ap = self.tree.people[aid]
+                    data.append({
+                        "id": aid,
+                        "name": ap.get("name", ""),
+                        "generations": dist,
+                    })
+                self._send_json(data)
+            else:
+                self._send_error("Invalid path")
+
+        elif path.startswith("/api/descendants/"):
+            parts = path.split("/")
+            if len(parts) == 4:
+                try:
+                    pid = int(parts[3])
+                except ValueError:
+                    self._send_error("Invalid ID")
+                    return
+                p = self.tree.get_person(pid)
+                if not p:
+                    self._send_error("Not found", 404)
+                    return
+                desc = self.tree.get_descendants(pid)
+                data = []
+                for dist, did in desc:
+                    dp = self.tree.people[did]
+                    data.append({
+                        "id": did,
+                        "name": dp.get("name", ""),
+                        "generations": dist,
+                    })
+                self._send_json(data)
+            else:
+                self._send_error("Invalid path")
 
         elif path.startswith("/api/relation/"):
             parts = path.split("/")

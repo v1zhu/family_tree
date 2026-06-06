@@ -38,7 +38,7 @@ def main():
     rel_p.add_argument("id1", type=int, help="Person ID")
     rel_p.add_argument("id2", type=int, help="Target person ID")
     rel_p.add_argument(
-        "type", choices=["parent", "sibling"], help="Relationship type"
+        "type", choices=["parent", "sibling", "spouse"], help="Relationship type"
     )
 
     del_rel_p = sub.add_parser(
@@ -47,8 +47,14 @@ def main():
     del_rel_p.add_argument("id1", type=int, help="Person ID")
     del_rel_p.add_argument("id2", type=int, help="Target person ID")
     del_rel_p.add_argument(
-        "type", choices=["parent", "sibling"], help="Relationship type"
+        "type", choices=["parent", "sibling", "spouse"], help="Relationship type"
     )
+
+    anc_p = sub.add_parser("ancestors", help="Show all ancestors of a person")
+    anc_p.add_argument("id", type=int, help="Person ID")
+
+    desc_p = sub.add_parser("descendants", help="Show all descendants of a person")
+    desc_p.add_argument("id", type=int, help="Person ID")
 
     relation_p = sub.add_parser(
         "relation", help="Find relationship between two people"
@@ -97,6 +103,12 @@ def main():
         print(f"  Age: {p.get('age', '') or 'N/A'}")
         print(f"  Gender: {p.get('gender', '') or 'N/A'}")
         print(f"  Bio: {p.get('bio', '') or 'N/A'}")
+        spouses = tree.get_spouses(args.id)
+        if spouses:
+            spouse_names = [
+                tree.people[pid].get("name", f"#{pid}") for pid in spouses
+            ]
+            print(f"  Spouses: {', '.join(spouse_names)}")
         parents = tree.get_parents(args.id)
         if parents:
             parent_names = [
@@ -152,6 +164,36 @@ def main():
             print(result)
         except ValueError as e:
             print(f"Error: {e}")
+    elif args.command == "ancestors":
+        p = tree.get_person(args.id)
+        if not p:
+            print(f"Person #{args.id} not found.")
+            return
+        name = p.get("name", "") or f"#{args.id}"
+        ancest = tree.get_ancestors(args.id)
+        if not ancest:
+            print(f"{name} has no known ancestors.")
+            return
+        print(f"Ancestors of {name}:")
+        for dist, pid in ancest:
+            an = tree.people[pid].get("name", f"#{pid}")
+            label = {1: "parent", 2: "grandparent"}.get(dist, f"great-{'great-' * (dist - 3)}grandparent" if dist > 2 else f"{dist} gen up")
+            print(f"  #{pid}: {an} ({label}, {dist} generation{'s' if dist > 1 else ''} away)")
+    elif args.command == "descendants":
+        p = tree.get_person(args.id)
+        if not p:
+            print(f"Person #{args.id} not found.")
+            return
+        name = p.get("name", "") or f"#{args.id}"
+        desc = tree.get_descendants(args.id)
+        if not desc:
+            print(f"{name} has no known descendants.")
+            return
+        print(f"Descendants of {name}:")
+        for dist, pid in desc:
+            dn = tree.people[pid].get("name", f"#{pid}")
+            label = {1: "child", 2: "grandchild"}.get(dist, f"great-{'great-' * (dist - 3)}grandchild" if dist > 2 else f"{dist} gen down")
+            print(f"  #{pid}: {dn} ({label}, {dist} generation{'s' if dist > 1 else ''} away)")
     elif args.command == "graph":
         import json as json_module
 
