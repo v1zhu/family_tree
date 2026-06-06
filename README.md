@@ -23,18 +23,16 @@ git clone https://github.com/v1zhu/family_tree.git
 cd family_tree
 uv pip install -e .
 ```
-
-### Launch the web UI
-
-```bash
-family-tree serve
-```
-
-Opens a browser at `http://localhost:8080` with an interactive graph.
-
 ## usage
 
+### Running the CLI
+
+All commands should be run using `uv run` to ensure they execute inside the project environment:
+
+
 ```bash
+
+
 # Add people
 family-tree add-person --name Alice --age 30 --gender female --bio "Lives in Chicago"
 family-tree add-person --name Bob --age 10 --gender male
@@ -64,6 +62,15 @@ family-tree update-person 1 --name "Alice Smith" --bio "Moved to Seattle"
 # Reset everything
 family-tree clear
 ```
+
+### Launch the web UI
+
+```bash
+family-tree serve
+```
+
+Opens a browser at `http://localhost:8080` with an interactive graph.
+
 
 ## How the Relationship Engine Works
 
