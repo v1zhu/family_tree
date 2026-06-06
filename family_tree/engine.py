@@ -1,0 +1,272 @@
+import json
+import os
+
+DATA_DIR = os.path.expanduser("~/.family_tree")
+DATA_FILE = os.path.join(DATA_DIR, "data.json")
+
+
+class FamilyTree:
+    def __init__(self, data=None):
+        if data:
+            self.people = {int(k): v for k, v in data.get("people", {}).items()}
+            self.next_id = data.get("next_id", 1)
+        else:
+            self.people = {}
+            self.next_id = 1
+
+    def to_dict(self):
+        return {
+            "people": {str(k): v for k, v in self.people.items()},
+            "next_id": self.next_id,
+        }
+
+    def save(self, path=None):
+        path = path or DATA_FILE
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+    @staticmethod
+    def load(path=None):
+        path = path or DATA_FILE
+        if os.path.exists(path):
+            with open(path) as f:
+                data = json.load(f)
+            return FamilyTree(data)
+        return FamilyTree()
+
+    def add_person(self, name="", age=None, gender="", bio=""):
+        pid = self.next_id
+        self.next_id += 1
+        self.people[pid] = {
+            "id": pid,
+            "name": name,
+            "age": age,
+            "gender": gender,
+            "bio": bio,
+            "relationships": [],
+        }
+        return pid
+
+    def delete_person(self, pid):
+        if pid not in self.people:
+            raise ValueError(f"Person #{pid} not found")
+        del self.people[pid]
+        for p in self.people.values():
+            p["relationships"] = [
+                r for r in p["relationships"] if r["target_id"] != pid
+            ]
+
+    def get_person(self, pid):
+        return self.people.get(pid)
+
+    def update_person(self, pid, **kwargs):
+        if pid not in self.people:
+            raise ValueError(f"Person #{pid} not found")
+        for key in ("name", "age", "gender", "bio"):
+            if key in kwargs:
+                self.people[pid][key] = kwargs[key]
+
+    def add_relationship(self, pid, target_id, rel_type):
+        if pid not in self.people:
+            raise ValueError(f"Person #{pid} not found")
+        if target_id not in self.people:
+            raise ValueError(f"Person #{target_id} not found")
+        if rel_type not in ("parent", "sibling"):
+            raise ValueError("Relationship type must be 'parent' or 'sibling'")
+
+        rel = {"type": rel_type, "target_id": target_id}
+        existing = self.people[pid]["relationships"]
+        if rel not in existing:
+            existing.append(rel)
+
+        if rel_type == "parent":
+            child_rel = {"type": "child", "target_id": pid}
+            if child_rel not in self.people[target_id]["relationships"]:
+                self.people[target_id]["relationships"].append(child_rel)
+
+    def delete_relationship(self, pid, target_id, rel_type):
+        if pid not in self.people:
+            raise ValueError(f"Person #{pid} not found")
+        self.people[pid]["relationships"] = [
+            r
+            for r in self.people[pid]["relationships"]
+            if not (r["type"] == rel_type and r["target_id"] == target_id)
+        ]
+        if rel_type == "parent":
+            self.people[target_id]["relationships"] = [
+                r
+                for r in self.people[target_id]["relationships"]
+                if not (r["type"] == "child" and r["target_id"] == pid)
+            ]
+
+    def _ancestors(self, pid, max_depth=100):
+        result = {pid: 0}
+        queue = [(pid, 0)]
+        visited = {pid}
+        while queue:
+            current, depth = queue.pop(0)
+            if depth >= max_depth:
+                continue
+            for rel in self.people[current].get("relationships", []):
+                if rel["type"] == "parent":
+                    parent_id = rel["target_id"]
+                    if parent_id not in visited:
+                        visited.add(parent_id)
+                        nd = depth + 1
+                        result[parent_id] = nd
+                        queue.append((parent_id, nd))
+        return result
+
+    def _descendants(self, pid, max_depth=100):
+        result = {pid: 0}
+        queue = [(pid, 0)]
+        visited = {pid}
+        while queue:
+            current, depth = queue.pop(0)
+            if depth >= max_depth:
+                continue
+            for rel in self.people[current].get("relationships", []):
+                if rel["type"] == "child":
+                    child_id = rel["target_id"]
+                    if child_id not in visited:
+                        visited.add(child_id)
+                        nd = depth + 1
+                        result[child_id] = nd
+                        queue.append((child_id, nd))
+        return result
+
+    def get_all_relationships(self, pid):
+        if pid not in self.people:
+            return []
+        return self.people[pid].get("relationships", [])
+
+    def get_siblings(self, pid):
+        if pid not in self.people:
+            return []
+        parents = [
+            r["target_id"]
+            for r in self.people[pid].get("relationships", [])
+            if r["type"] == "parent"
+        ]
+        siblings = set()
+        for parent_id in parents:
+            for other_pid, person in self.people.items():
+                if other_pid == pid:
+                    continue
+                if any(
+                    r["type"] == "parent" and r["target_id"] == parent_id
+                    for r in person.get("relationships", [])
+                ):
+                    siblings.add(other_pid)
+        return sorted(siblings)
+
+    def get_children(self, pid):
+        return sorted(
+            other_pid
+            for other_pid, person in self.people.items()
+            if any(
+                r["type"] == "parent" and r["target_id"] == pid
+                for r in person.get("relationships", [])
+            )
+        )
+
+    def get_parents(self, pid):
+        if pid not in self.people:
+            return []
+        return sorted(
+            r["target_id"]
+            for r in self.people[pid].get("relationships", [])
+            if r["type"] == "parent"
+        )
+
+    def get_relationship(self, pid1, pid2):
+        if pid1 not in self.people or pid2 not in self.people:
+            raise ValueError("Person not found")
+        if pid1 == pid2:
+            return "same person"
+
+        anc1 = self._ancestors(pid1)
+        anc2 = self._ancestors(pid2)
+
+        common = set(anc1.keys()) & set(anc2.keys())
+        if not common:
+            desc1 = self._descendants(pid1)
+            desc2 = self._descendants(pid2)
+            common = set(desc1.keys()) & set(desc2.keys())
+            if not common:
+                return "no relationship found"
+
+        best = min(common, key=lambda x: anc1[x] + anc2[x])
+        d1, d2 = anc1[best], anc2[best]
+
+        return _describe_relationship(pid1, pid2, self.people, d1, d2, best)
+
+
+def _describe_relationship(pid1, pid2, people, d1, d2, common_ancestor):
+    name1 = people[pid1].get("name", f"#{pid1}")
+    name2 = people[pid2].get("name", f"#{pid2}")
+    anc_name = people[common_ancestor].get("name", f"#{common_ancestor}")
+
+    if d1 == 0 and d2 == 0:
+        return f"{name1} and {name2} are the same person"
+
+    if d1 == 0:
+        # pid1 is the common ancestor, pid2 is descendant
+        if d2 == 1:
+            return f"{name2} is the child of {name1}"
+        elif d2 == 2:
+            return f"{name2} is the grandchild of {name1}"
+        else:
+            prefix = "great-" * (d2 - 2)
+            return f"{name2} is the {prefix}grandchild of {name1}"
+
+    if d2 == 0:
+        # pid2 is the common ancestor, pid1 is descendant
+        if d1 == 1:
+            return f"{name1} is the child of {name2}"
+        elif d1 == 2:
+            return f"{name1} is the grandchild of {name2}"
+        else:
+            prefix = "great-" * (d1 - 2)
+            return f"{name1} is the {prefix}grandchild of {name2}"
+
+    d_min = min(d1, d2)
+    d_max = max(d1, d2)
+    removed = d_max - d_min
+
+    if d_min == 1:
+        if removed == 0:
+            return f"{name1} and {name2} are siblings"
+        if removed == 1:
+            if d1 == 1:
+                return f"{name1} is the aunt/uncle of {name2}"
+            else:
+                return f"{name1} is the niece/nephew of {name2}"
+        else:
+            prefix = "great-" * (removed - 1)
+            if d1 == 1:
+                return f"{name1} is the {prefix}aunt/uncle of {name2}"
+            else:
+                return f"{name1} is the {prefix}niece/nephew of {name2}"
+
+    cousin_level = d_min - 1
+    cousin_str = _ordinal(cousin_level) + " cousin" if cousin_level > 1 else "first cousin"
+
+    removed_str = ""
+    if removed >= 1:
+        removed_str = {1: " once removed", 2: " twice removed"}.get(removed, f" {removed} times removed")
+
+    return f"{name1} and {name2} are {cousin_str}{removed_str}"
+
+
+def _ordinal(n):
+    if n == 2:
+        return "second"
+    elif n == 3:
+        return "third"
+    elif n == 4:
+        return "fourth"
+    elif n == 5:
+        return "fifth"
+    return f"{n}th"
