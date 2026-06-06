@@ -1,4 +1,4 @@
-# Family Tree
+# Family Tree Tracker
 
 A Python CLI tool to **manage and visualize family relationships**. Track people, connect them as parents/children or siblings, and discover how any two people are related — even complex relationships like "second cousin once removed" or "great-grandparent".
 
@@ -32,7 +32,7 @@ family-tree serve
 
 Opens a browser at `http://localhost:8080` with an interactive graph.
 
-### CLI usage
+## usage
 
 ```bash
 # Add people
