@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Family Tree</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="header">
+    <h1>🌳 Family Tree</h1>
+    <div id="toolbar">
+      <button id="addPersonBtn" class="btn btn-primary">+ Add Person</button>
+      <button id="findRelationBtn" class="btn btn-secondary">🔍 Find Relation</button>
+    </div>
+  </div>
+
+  <div id="mainLayout">
+    <div id="graphContainer"></div>
+
+    <div id="sidebar" class="hidden">
+      <div id="sidebarHeader">
+        <h2 id="sidebarTitle">Edit Person</h2>
+        <button id="closeSidebarBtn" class="btn-close">&times;</button>
+      </div>
+      <div id="sidebarBody">
+        <input type="hidden" id="editId" />
+
+        <label>Name</label>
+        <input type="text" id="editName" placeholder="Full name" />
+
+        <label>Age</label>
+        <input type="number" id="editAge" placeholder="Age" />
+
+        <label>Gender</label>
+        <select id="editGender">
+          <option value="">Prefer not to say</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="non-binary">Non-binary</option>
+        </select>
+
+        <label>Biography</label>
+        <textarea id="editBio" rows="4" placeholder="Life story, facts, notes..."></textarea>
+
+        <button id="savePersonBtn" class="btn btn-primary" style="width:100%;margin-top:10px">Save</button>
+        <button id="deletePersonBtn" class="btn btn-danger" style="width:100%;margin-top:5px">Delete Person</button>
+
+        <hr />
+
+        <h3>Relationships</h3>
+        <div id="relationsList"></div>
+
+        <h4>Add Relationship</h4>
+        <div id="addRelationForm">
+          <input type="number" id="relTargetId" placeholder="Target person ID" />
+          <select id="relType">
+            <option value="parent">Parent</option>
+            <option value="sibling">Sibling</option>
+          </select>
+          <button id="addRelationBtn" class="btn btn-primary btn-sm">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="findModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <h2>Find Relationship</h2>
+      <label>Person A ID</label>
+      <input type="number" id="findId1" />
+      <label>Person B ID</label>
+      <input type="number" id="findId2" />
+      <button id="findBtn" class="btn btn-primary">Find</button>
+      <div id="findResult"></div>
+    </div>
+  </div>
+
+  <div id="addPersonModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <h2>Add Person</h2>
+      <label>Name</label>
+      <input type="text" id="newPersonName" placeholder="Full name" />
+      <label>Age</label>
+      <input type="number" id="newPersonAge" placeholder="Age" />
+      <label>Gender</label>
+      <select id="newPersonGender">
+        <option value="">Prefer not to say</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="non-binary">Non-binary</option>
+      </select>
+      <label>Biography</label>
+      <textarea id="newPersonBio" rows="3" placeholder="Life story..."></textarea>
+      <button id="confirmAddPerson" class="btn btn-primary">Add Person</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
