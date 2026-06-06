@@ -101,6 +101,7 @@ class FamilyTreeHandler(SimpleHTTPRequestHandler):
         elif path == "/api/graph":
             nodes = []
             edges = []
+            seen = set()
             for pid, p in self.tree.people.items():
                 label = p.get("name", "") or f"#{pid}"
                 gender = p.get("gender", "")
@@ -113,12 +114,32 @@ class FamilyTreeHandler(SimpleHTTPRequestHandler):
                     "bio": p.get("bio", ""),
                 })
                 for rel in p.get("relationships", []):
-                    edge_label = rel["type"]
-                    edges.append({
-                        "from": pid,
-                        "to": rel["target_id"],
-                        "label": edge_label,
-                    })
+                    if rel["type"] == "child":
+                        continue
+                    if rel["type"] == "parent":
+                        edge = {
+                            "from": rel["target_id"],
+                            "to": pid,
+                            "label": "parent",
+                            "arrows": "to",
+                        }
+                    elif rel["type"] == "spouse":
+                        edge = {
+                            "from": pid,
+                            "to": rel["target_id"],
+                            "label": "spouse",
+                            "dashes": True,
+                        }
+                    else:
+                        edge = {
+                            "from": pid,
+                            "to": rel["target_id"],
+                            "label": rel["type"],
+                        }
+                    key = (min(pid, rel["target_id"]), max(pid, rel["target_id"]), rel["type"])
+                    if key not in seen:
+                        seen.add(key)
+                        edges.append(edge)
             if not nodes:
                 nodes = [{"id": 0, "label": "No people yet", "title": ""}]
             self._send_json({"nodes": nodes, "edges": edges})

@@ -71,7 +71,6 @@ function initNetwork() {
       dragView: true,
     },
     edges: {
-      arrows: { to: { enabled: false } },
       color: { color: '#95a5a6', highlight: '#3498db' },
       font: { size: 11, color: '#666', align: 'middle' },
       smooth: { type: 'curvedCW', roundness: 0.1 },
