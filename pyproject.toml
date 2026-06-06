@@ -1,0 +1,15 @@
+[project]
+name = "family-tree"
+version = "0.1.0"
+description = "A CLI tool to manage and visualize family relationships"
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["family_tree*"]
+
+[project.scripts]
+family-tree = "family_tree.cli:main"
