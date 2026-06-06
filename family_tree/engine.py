@@ -26,6 +26,13 @@ class FamilyTree:
         with open(path, "w") as f:
             json.dump(self.to_dict(), f, indent=2)
 
+    def clear(self, path=None):
+        self.people = {}
+        self.next_id = 1
+        path = path or DATA_FILE
+        if os.path.exists(path):
+            os.remove(path)
+
     @staticmethod
     def load(path=None):
         path = path or DATA_FILE

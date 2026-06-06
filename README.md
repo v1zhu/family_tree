@@ -60,6 +60,9 @@ family-tree info 1
 
 # Update a person
 family-tree update-person 1 --name "Alice Smith" --bio "Moved to Seattle"
+
+# Reset everything
+family-tree clear
 ```
 
 ## How the Relationship Engine Works

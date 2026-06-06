@@ -13,6 +13,8 @@ def main():
 
     sub.add_parser("serve", help="Start the web UI server")
 
+    sub.add_parser("clear", help="Delete all data and reset the tree")
+
     add_p = sub.add_parser("add-person", help="Add a person")
     add_p.add_argument("--name", default="", help="Person's name")
     add_p.add_argument("--age", type=int, help="Person's age")
@@ -72,6 +74,15 @@ def main():
         return
 
     tree = FamilyTree.load()
+
+    if args.command == "clear":
+        confirm = input("Delete all family tree data? This cannot be undone. [y/N] ")
+        if confirm.lower() == "y":
+            tree.clear()
+            print("Family tree cleared.")
+        else:
+            print("Canceled.")
+        return
 
     if args.command == "serve":
         from .server import serve
