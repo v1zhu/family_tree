@@ -59,6 +59,9 @@ family-tree info 1
 # Update a person
 family-tree update-person 1 --name "Alice Smith" --bio "Moved to Seattle"
 
+# Delete a relationship
+family-tree delete-relation 1 3 parent   # Remove Charlie as Alice's parent
+
 # Reset everything
 family-tree clear
 ```
