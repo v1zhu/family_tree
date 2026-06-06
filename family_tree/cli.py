@@ -144,9 +144,14 @@ def main():
         try:
             tree.add_relationship(args.id1, args.id2, args.type)
             tree.save()
-            print(
-                f"Added {args.type} relationship: #{args.id1} -> #{args.id2}"
-            )
+            if args.type == "parent":
+                print(
+                    f"Added parent relationship: #{args.id2} (parent) -> #{args.id1} (child)"
+                )
+            else:
+                print(
+                    f"Added {args.type} relationship: #{args.id1} -> #{args.id2}"
+                )
         except ValueError as e:
             print(f"Error: {e}")
     elif args.command == "delete-relation":

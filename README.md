@@ -44,6 +44,10 @@ family-tree add-person --name Charlie --age 60
 family-tree add-relation 2 1 parent     # Alice is parent of Bob
 family-tree add-relation 1 3 parent     # Charlie is parent of Alice
 
+# Add a spouse relationship
+family-tree add-person --name Diana --age 55 --gender female
+family-tree add-relation 3 4 spouse     # Charlie and Diana are spouses
+
 # Find how two people are related
 family-tree relation 3 2
 # Output: Bob is the grandchild of Charlie
